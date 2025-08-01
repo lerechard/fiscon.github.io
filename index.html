@@ -7,18 +7,20 @@
   <style>
     body {
       margin: 0;
-      background: #000;
+      background: hsl(0, 100%, 50%);
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      touch-action: none;
+      transition: background 0.1s linear;
     }
     img {
       max-width: 80vw;
       max-height: 80vh;
       transition: transform 0.1s linear;
-      touch-action: none;
+      pointer-events: none;
     }
   </style>
 </head>
@@ -46,8 +48,8 @@
       if (!isDragging) return;
       const dx = x - lastX;
       const dy = y - lastY;
-      velocityY = dx * 0.5;
-      velocityX = -dy * 0.5;
+      velocityY = dx * 0.8;
+      velocityX = -dy * 0.8;
       rotationY += velocityY;
       rotationX += velocityX;
       applyRotation();
@@ -58,8 +60,8 @@
     const stopDrag = () => {
       isDragging = false;
       inertiaInterval = setInterval(() => {
-        velocityX *= 0.95;
-        velocityY *= 0.95;
+        velocityX *= 0.97;
+        velocityY *= 0.97;
         rotationX += velocityX;
         rotationY += velocityY;
         applyRotation();
@@ -73,13 +75,20 @@
       photo.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
     };
 
-    // Mouse events
-    photo.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
+    // Background rainbow animation
+    let hue = 0;
+    setInterval(() => {
+      hue = (hue + 1) % 360;
+      document.body.style.background = `hsl(${hue}, 100%, 50%)`;
+    }, 50);
+
+    // Mouse events on the whole window
+    window.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
     window.addEventListener('mousemove', e => doDrag(e.clientX, e.clientY));
     window.addEventListener('mouseup', stopDrag);
 
-    // Touch events
-    photo.addEventListener('touchstart', e => {
+    // Touch events on the whole window
+    window.addEventListener('touchstart', e => {
       const t = e.touches[0];
       startDrag(t.clientX, t.clientY);
     });
