@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zoom Fiscon</title>
+  <style>
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    img {
+      max-width: 80vw;
+      max-height: 80vh;
+      transition: transform 0.1s linear;
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+  <img id="photo" src="image.png" alt="Spin Photo" />
+
+  <script>
+    const photo = document.getElementById('photo');
+    let rotationY = 0;
+    let rotationX = 0;
+    let isDragging = false;
+    let lastX, lastY;
+    let velocityX = 0;
+    let velocityY = 0;
+    let inertiaInterval;
+
+    const startDrag = (x, y) => {
+      isDragging = true;
+      lastX = x;
+      lastY = y;
+      clearInterval(inertiaInterval);
+    };
+
+    const doDrag = (x, y) => {
+      if (!isDragging) return;
+      const dx = x - lastX;
+      const dy = y - lastY;
+      velocityY = dx * 0.5;
+      velocityX = -dy * 0.5;
+      rotationY += velocityY;
+      rotationX += velocityX;
+      applyRotation();
+      lastX = x;
+      lastY = y;
+    };
+
+    const stopDrag = () => {
+      isDragging = false;
+      inertiaInterval = setInterval(() => {
+        velocityX *= 0.95;
+        velocityY *= 0.95;
+        rotationX += velocityX;
+        rotationY += velocityY;
+        applyRotation();
+        if (Math.abs(velocityX) < 0.01 && Math.abs(velocityY) < 0.01) {
+          clearInterval(inertiaInterval);
+        }
+      }, 16);
+    };
+
+    const applyRotation = () => {
+      photo.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+    };
+
+    // Mouse events
+    photo.addEventListener('mousedown', e => startDrag(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => doDrag(e.clientX, e.clientY));
+    window.addEventListener('mouseup', stopDrag);
+
+    // Touch events
+    photo.addEventListener('touchstart', e => {
+      const t = e.touches[0];
+      startDrag(t.clientX, t.clientY);
+    });
+    window.addEventListener('touchmove', e => {
+      const t = e.touches[0];
+      doDrag(t.clientX, t.clientY);
+    });
+    window.addEventListener('touchend', stopDrag);
+
+    // Gyroscope for mobile
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', (event) => {
+        if (!isDragging) {
+          rotationY = event.gamma * 2; // left-right
+          rotationX = event.beta * -1; // up-down
+          applyRotation();
+        }
+      }, true);
+    }
+  </script>
+</body>
+</html>
